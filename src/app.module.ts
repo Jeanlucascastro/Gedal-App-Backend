@@ -1,15 +1,21 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { TypeormService } from './config/typeorm/typeorm.service';
 import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(
-      'mongodb+srv://jeanlucaspy:myspace123@cluster0.j8w4m.mongodb.net/test',
-    ),
+    EventsModule,
+    TypeOrmModule.forRootAsync({
+      useClass: TypeormService,
+    }),
+    ConfigModule.forRoot(),
     EventsModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

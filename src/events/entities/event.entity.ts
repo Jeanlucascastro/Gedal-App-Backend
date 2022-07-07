@@ -1,24 +1,48 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { ActiveStatusEnum } from 'src/commom/enum/enum';
+import {
+  BeforeInsert,
+  Column,
+  CreateDateColumn,
+  Entity,
+  ObjectIdColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
-export type EventDocument = Event & Document;
-
-@Schema()
+@Entity('Event')
 export class Event {
-  @Prop()
+  @ObjectIdColumn()
+  _id: string;
+
+  @Column()
   nameEvent: string;
 
-  @Prop()
+  @Column()
   dateEvent: Date;
 
-  @Prop()
+  @Column()
   description: string;
 
-  @Prop()
+  @Column()
   location: string;
 
-  @Prop()
+  @Column()
   howToSee: string;
-}
 
-export const EventSchema = SchemaFactory.createForClass(Event);
+  @Column({
+    type: 'enum',
+    enum: ActiveStatusEnum,
+    default: ActiveStatusEnum.ACTIVE,
+  })
+  status: ActiveStatusEnum;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  updated_at: Date;
+
+  @BeforeInsert()
+  async beforeInsert() {
+    this.status = ActiveStatusEnum.ACTIVE;
+  }
+}

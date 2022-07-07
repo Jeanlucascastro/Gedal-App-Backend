@@ -1,48 +1,44 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { EventDocument } from './entities/event.entity';
-import { Model } from 'mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Event } from './entities/event.entity';
+import { ActiveStatusEnum } from 'src/commom/enum/enum';
 
 @Injectable()
 export class EventsService {
   constructor(
-    @InjectModel(Event.name) private eventModel: Model<EventDocument>,
+    @InjectRepository(Event) private eventRepository: Repository<Event>,
   ) {}
 
-  create(createEventDto: CreateEventDto) {
-    const event = new this.eventModel(createEventDto);
-    return event.save();
+  async create(createEventDto: CreateEventDto) {
+    const event = this.eventRepository.create(createEventDto);
+    await this.eventRepository.save(event);
+    return event;
   }
 
   findAll() {
-    return this.eventModel.find();
+    return this.eventRepository.find();
   }
 
   findOne(id: string) {
-    return this.eventModel.findById(id);
+    const forms = this.eventRepository.findOne(id);
+    return forms;
   }
 
-  update(id: string, updateEventDto: UpdateEventDto) {
-    return this.eventModel.findByIdAndUpdate(
-      {
-        _id: id,
-      },
-      {
-        $set: updateEventDto,
-      },
-      {
-        new: true,
-      },
+  async update(id: string, updateEventDto: UpdateEventDto) {
+    const event = await this.eventRepository.findOne(id);
+    const eventUpdated = await this.eventRepository.save(
+      Object.assign(event, updateEventDto),
     );
+    return eventUpdated;
   }
 
   remove(id: string) {
-    return this.eventModel
-      .deleteOne({
-        _id: id,
-      })
-      .exec();
+    this.eventRepository.update(id, {
+      status: ActiveStatusEnum.INATIVE,
+    });
+    return;
   }
 }
